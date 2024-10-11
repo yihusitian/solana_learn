@@ -74,3 +74,17 @@ for (let i = 0; i < 10; i++) {
     const keypair = Keypair.fromSeed(hdkey.derive(path).privateKey)
     console.log(`keypair_${i}公钥:${keypair.publicKey.toBase58()}私钥:${base58.encode(keypair.secretKey)}`)
 }
+
+
+//生成指定前缀或后缀的钱包地址 使用solana-cli命令
+//solana-keygen grind 命令中的前缀或者后缀参数不能包含非字母字符和非十六进制字符。可以尝试使用十六进制字符 (0-9, a-f) 来生成地址
+/**
+ * 如使用命令：solana-keygen grind --starts-with ccc666:1
+ * 可以生成 ccc666作为前缀的钱包地址，生成数量为1个，这个生成速度可能会比较慢
+ * 
+ * 使用命令：solana-keygen grind --starts-and-ends-with aaa:fff:1
+ * 可以生成 aaa开头，fff结尾的钱包地址，生成数量为1个
+ * 
+ * 更多命令可以使用 solana-keygen grind -h 获得使用帮助
+ * 
+ */
