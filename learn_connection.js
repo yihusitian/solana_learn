@@ -15,3 +15,23 @@ const walletPublicKey = new PublicKey(wallet_address)
 //获取钱包余额
 const balance = await devConnection.getBalance(walletPublicKey)
 console.log(`balance:${balance / LAMPORTS_PER_SOL} SOL`)
+
+
+/**
+ * solana提供了三个rpc相关的环境变量
+ *  mainnet-beta https://api.mainnet-beta.solana.com
+    devnet https://api.devnet.solana.com
+    testnet https://api.testnet.solana.com
+
+    我们可以借助clusterApiUrl和变量名来直接获取solana 的rpc 地址
+ */
+
+import { clusterApiUrl } from "@solana/web3.js";
+
+
+
+// // const mainConnection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed')
+// const mainConnection = new Connection(process.env.MAIN_RPC_URL)
+// const wallet_balance = await mainConnection.getBalance(new PublicKey("HZiygmcg3HWgKnbcRiFH76Z9ab8B369pp6PabRvPHEyS"))
+// console.log(wallet_balance / LAMPORTS_PER_SOL)
+

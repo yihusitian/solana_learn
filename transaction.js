@@ -17,10 +17,8 @@ transaction.add(
     })
 )
 
-console.log(PublicKey.isOnCurve(toAddress))
+const connection = new Connection(process.env.DEV_RPC_URL)
 
-console.log(PublicKey.isOnCurve("HZiygmcg3HWgKnbcRiFH76Z9ab8B369pp6PabRvPHEy2"))
-
-// const connection = new Connection("")
-
-// sendAndConfirmTransaction()
+const transactionSignature = await sendAndConfirmTransaction(connection, transaction, [
+    keypair
+])
