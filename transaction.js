@@ -22,3 +22,4 @@ const connection = new Connection(process.env.DEV_RPC_URL)
 const transactionSignature = await sendAndConfirmTransaction(connection, transaction, [
     keypair
 ])
+
