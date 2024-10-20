@@ -1,6 +1,4 @@
 import { PublicKey, Connection } from "@solana/web3.js";
-import "bn.js"
-import "bn.js";
 import BN from "bn.js";
 import 'dotenv/config'
 
