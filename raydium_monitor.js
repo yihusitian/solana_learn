@@ -3,6 +3,34 @@ import 'dotenv/config'
 import chalk from "chalk";
 import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 import fs from 'fs'
+import { Metadata, PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from '@metaplex-foundation/mpl-token-metadata';
+
+// 获取元数据
+async function fetchTokenMetadata(mintAddress) {
+  // 计算代币的元数据地址（pda）
+  const [metadataPDA] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from('metadata'),
+      TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+      mintAddress.toBuffer(),
+    ],
+    TOKEN_METADATA_PROGRAM_ID
+  );
+
+  // 获取代币元数据账户信息
+  const accountInfo = await connection.getAccountInfo(metadataPDA);
+  if (!accountInfo) {
+    console.log('No metadata found for this token.');
+    return;
+  }
+
+  // 解析元数据
+  const metadata = Metadata.deserialize(accountInfo.data)[0];
+  console.log('Token Metadata:');
+  console.log(`- Name: ${metadata.data.name}`);
+  console.log(`- Symbol: ${metadata.data.symbol}`);
+  console.log(`- URI: ${metadata.data.uri}`);
+}
 
 const RPC_ENDPOINT = process.env.RPC_ENDPOINT ?? clusterApiUrl('mainnet-beta');
 const RPC_WEBSOCKET_ENDPOINT = process.env.RPC_WEBSOCKET_ENDPOINT ?? 'wss://api.mainnet-beta.solana.com';
@@ -74,7 +102,12 @@ const logsCallback = async function(params) {
                 定义：Quote 资产是交易对中的计价资产，通常放在后面。
                 作用：它表示 base 资产的价格或价值。
                 示例：在 BTC/USDT 中，USDT 是 quote 资产，表示每单位 BTC 的价格（用 USDT 表示）。
-             */
+             
+                对于去中心化交易所（如 Raydium 或 Uniswap），每个流动性池一般由 
+                base 和 quote 两种资产组成。例如，ETH/DAI 池中的 ETH 是 base 资产，
+                而 DAI 是 quote 资产，用于计量 ETH 的价值。
+
+            */
 
             if (baseInfo) {
               //新代币合约信息
@@ -146,4 +179,7 @@ async function monitorNewTokens() {
     }
   }
   
-  monitorNewTokens();
+//   monitorNewTokens();
+
+const token = await fetchTokenMetadata(new PublicKey("AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump"))
+console.log(token)
