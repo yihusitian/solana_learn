@@ -4,6 +4,46 @@ import chalk from "chalk";
 import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 import fs from 'fs'
 import { Metadata, PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from '@metaplex-foundation/mpl-token-metadata';
+import axios from 'axios'
+
+// 用于清理字符串中 \x00 字符的函数
+const cleanString = (str) => str.replace(/\x00/g, '').trim();
+
+// 清理 JSON 对象中的所有值
+function cleanMetadata(metadata) {
+  const cleanedMetadata = {};
+  for (const key in metadata) {
+    if (typeof metadata[key] === 'string') {
+      cleanedMetadata[key] = cleanString(metadata[key]);
+    } else {
+      cleanedMetadata[key] = metadata[key];
+    }
+  }
+  return cleanedMetadata;
+}
+
+// 发送消息
+async function sendMessageToWeChat(content) {
+  const url = `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${process.env.QW_ACCESS_TOKEN}`;
+  console.log(url)
+  const data = {
+    msgtype: 'markdown',
+    markdown: {
+      content: content, // 消息内容
+    }
+  };
+
+  try {
+    const response = await axios.post(url, data);
+    if (response.data.errcode === 0) {
+      console.log('Message sent successfully');
+    } else {
+      console.error('Failed to send message:', response.data);
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
 
 // 获取元数据
 async function fetchTokenMetadata(mintAddress) {
@@ -30,7 +70,9 @@ async function fetchTokenMetadata(mintAddress) {
   console.log(`- Name: ${metadata.data.name}`);
   console.log(`- Symbol: ${metadata.data.symbol}`);
   console.log(`- URI: ${metadata.data.uri}`);
-  return metadata.data
+
+  const {name, symbol, uri} = metadata.data
+  return cleanMetadata({ name, symbol, uri })
 }
 
 const RPC_ENDPOINT = process.env.RPC_ENDPOINT ?? clusterApiUrl('mainnet-beta');
@@ -132,6 +174,16 @@ const logsCallback = async function(params) {
               quoteLpAmount = quoteInfo.uiTokenAmount.uiAmount;
             }
         }
+        if (baseAddress && quoteAddress) {
+          const baseTokenInfo = await fetchTokenMetadata(new PublicKey(baseAddress))
+          const quoteTokenInfo = await fetchTokenMetadata(new PublicKey(quoteAddress))
+          const content = `新上线交易币对儿：${baseTokenInfo.symbol}/${quoteTokenInfo.symbol} \n` +
+                          `代币名称：${baseTokenInfo.name} \n` +
+                          `代币地址：${baseAddress} \n` +
+                          `代币数量：${baseLpAmount} \n` + 
+                          `代币uri：${baseTokenInfo.uri}`
+          await sendMessageToWeChat(content)
+        }
         const newTokenData = {
             lpSignature: signature,
             creator: signer,
@@ -180,27 +232,13 @@ async function monitorNewTokens() {
     }
   }
   
-//   monitorNewTokens();
+monitorNewTokens();
 
-// 用于清理字符串中 \x00 字符的函数
-const cleanString = (str) => str.replace(/\x00/g, '').trim();
+// await sendMessageToWeChat("<font color='red'>tes</font>")
 
-// 清理 JSON 对象中的所有值
-function cleanMetadata(metadata) {
-  const cleanedMetadata = {};
-  for (const key in metadata) {
-    if (typeof metadata[key] === 'string') {
-      cleanedMetadata[key] = cleanString(metadata[key]);
-    } else {
-      cleanedMetadata[key] = metadata[key];
-    }
-  }
-  return cleanedMetadata;
-}
-
-const {name, symbol, uri} = await fetchTokenMetadata(new PublicKey("AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump"))
-console.log(cleanMetadata({
-  name,
-  symbol,
-  uri
-}))
+// const {name, symbol, uri} = await fetchTokenMetadata(new PublicKey("AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump"))
+// console.log(cleanMetadata({
+//   name,
+//   symbol,
+//   uri
+// }))
