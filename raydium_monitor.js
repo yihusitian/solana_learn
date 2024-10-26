@@ -8,7 +8,7 @@ import { Metadata, PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from '@metaplex-fou
 // 获取元数据
 async function fetchTokenMetadata(mintAddress) {
   // 计算代币的元数据地址（pda）
-  const [metadataPDA] = await PublicKey.findProgramAddress(
+  const [metadataPDA] = PublicKey.findProgramAddressSync(
     [
       Buffer.from('metadata'),
       TOKEN_METADATA_PROGRAM_ID.toBuffer(),
@@ -21,7 +21,7 @@ async function fetchTokenMetadata(mintAddress) {
   const accountInfo = await connection.getAccountInfo(metadataPDA);
   if (!accountInfo) {
     console.log('No metadata found for this token.');
-    return;
+    return undefined;
   }
 
   // 解析元数据
@@ -30,6 +30,7 @@ async function fetchTokenMetadata(mintAddress) {
   console.log(`- Name: ${metadata.data.name}`);
   console.log(`- Symbol: ${metadata.data.symbol}`);
   console.log(`- URI: ${metadata.data.uri}`);
+  return metadata.data
 }
 
 const RPC_ENDPOINT = process.env.RPC_ENDPOINT ?? clusterApiUrl('mainnet-beta');
@@ -181,5 +182,25 @@ async function monitorNewTokens() {
   
 //   monitorNewTokens();
 
-const token = await fetchTokenMetadata(new PublicKey("AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump"))
-console.log(token)
+// 用于清理字符串中 \x00 字符的函数
+const cleanString = (str) => str.replace(/\x00/g, '').trim();
+
+// 清理 JSON 对象中的所有值
+function cleanMetadata(metadata) {
+  const cleanedMetadata = {};
+  for (const key in metadata) {
+    if (typeof metadata[key] === 'string') {
+      cleanedMetadata[key] = cleanString(metadata[key]);
+    } else {
+      cleanedMetadata[key] = metadata[key];
+    }
+  }
+  return cleanedMetadata;
+}
+
+const {name, symbol, uri} = await fetchTokenMetadata(new PublicKey("AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump"))
+console.log(cleanMetadata({
+  name,
+  symbol,
+  uri
+}))
