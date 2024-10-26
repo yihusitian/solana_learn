@@ -4,9 +4,10 @@ import base58 from 'bs58'
 import { MINT_SIZE, TOKEN_PROGRAM_ID, createInitializeMint2Instruction } from "@solana/spl-token"
 import { PROGRAM_ID as MPL_TOKEN_PROGRAM_ID, createCreateMetadataAccountV3Instruction } from '@metaplex-foundation/mpl-token-metadata'
 import { buildTransaction } from './tx_util.js'
-
+import { generateKeypair } from "./wallet_util.js";
 //创建一个密钥对儿，用于铸币
-const mintKeypair = Keypair.generate();
+const mintKeypair = generateKeypair();
+// const mintKeypair = Keypair.fromSecretKey(base58.decode(process.env.MINT_SECRET_KEY))
 console.log(`mint publickey: ${mintKeypair.publicKey.toBase58()}`)
 
 //payer
@@ -18,8 +19,8 @@ const lamports = await connection.getMinimumBalanceForRentExemption(MINT_SIZE)
 
 const tokenInfo = {
     decimals: 6,
-    name: 'Seven star gold',
-    symbol: 'SSG',
+    name: 'TRUMP WIN pump',
+    symbol: 'TRUMPWIN',
     uri: 'https://thisisnot.arealul/info.json'
 }
 //构建创建铸造 账户指令
