@@ -5,6 +5,8 @@ import { MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 import fs from 'fs'
 import { Metadata, PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from '@metaplex-foundation/mpl-token-metadata';
 import axios from 'axios'
+import { format as dateFormat } from 'date-fns';
+
 
 // 用于清理字符串中 \x00 字符的函数
 const cleanString = (str) => str.replace(/\x00/g, '').trim();
@@ -177,11 +179,16 @@ const logsCallback = async function(params) {
         if (baseAddress && quoteAddress) {
           const baseTokenInfo = await fetchTokenMetadata(new PublicKey(baseAddress))
           const quoteTokenInfo = await fetchTokenMetadata(new PublicKey(quoteAddress))
-          const content = `新上线交易币对儿：${baseTokenInfo.symbol}/${quoteTokenInfo.symbol} \n` +
-                          `代币名称：${baseTokenInfo.name} \n` +
-                          `代币地址：${baseAddress} \n` +
-                          `代币数量：${baseLpAmount} \n` + 
-                          `代币uri：${baseTokenInfo.uri}`
+          const amountFormat = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 3,
+          }).format(baseLpAmount);
+          const content = `**新上线交易币对儿**：<font color="info">${baseTokenInfo.symbol}/${quoteTokenInfo.symbol}</font> \n` +
+                          `**代币名称**：<font color="info">${baseTokenInfo.name}</font> \n` +
+                          `**代币地址**：<font color="info">${baseAddress}</font> \n` +
+                          `**代币数量**：<font color="info">${amountFormat}</font> \n` + 
+                          `**代币uri**：[${baseTokenInfo.uri}](${baseTokenInfo.uri}) \n` +
+                          `**上线时间**：<font color="info">${dateFormat(new Date(), 'yyyy-MM-dd HH:mm:ss')}</font>`
           await sendMessageToWeChat(content)
         }
         const newTokenData = {
@@ -233,8 +240,19 @@ async function monitorNewTokens() {
   }
   
 monitorNewTokens();
+// const amountFormat = new Intl.NumberFormat('en-US', {
+//   minimumFractionDigits: 1,
+//   maximumFractionDigits: 3,
+// }).format(10000000000);
+// const tempuri = "https//www.baidu.com"
+// const content = `**新上线交易币对儿**：<font color="info">THEM/SOL</font> \n` +
+//                           `**代币名称**：<font color="info">THEM</font> \n` +
+//                           `**代币地址**：<font color="info">AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump</font> \n` +
+//                           `**代币数量**：<font color="info">${amountFormat}</font> \n` + 
+//                           `**代币uri**：[${tempuri}](${tempuri}) \n` +
+//                           `**上线时间**：<font color="info">${dateFormat(new Date(), 'yyyy-MM-dd HH:mm:ss')}</font>`
 
-// await sendMessageToWeChat("<font color='red'>tes</font>")
+// await sendMessageToWeChat(content)
 
 // const {name, symbol, uri} = await fetchTokenMetadata(new PublicKey("AEn65EMsSxSiY5oujbiW16vdoEFpx75Cy61yUmZ8pump"))
 // console.log(cleanMetadata({
